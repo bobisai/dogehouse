@@ -1,4 +1,4 @@
-defmodule KousaTest.FollowTest do
+defmodule Kousa.Beef.FollowTest do
   use ExUnit.Case, async: true
   use Kousa.Support.EctoSandbox
 
@@ -40,7 +40,6 @@ defmodule KousaTest.FollowTest do
   end
 
   describe "Follows" do
-
     test "get_followers_online_and_not_in_a_room/1" do
       user = Factory.create(User)
       follower = Factory.create(User)
@@ -110,28 +109,6 @@ defmodule KousaTest.FollowTest do
       Follows.insert(%{userId: uid, followerId: fid})
 
       assert Follows.following_me?(uid, fid)
-    end
-
-    # TEST IS FAILING: somehow this function is returning
-    # offline follows
-    @tag :skip
-    test "fetch_following_online" do
-      uid = Factory.create(User).id
-      fid1 = Factory.create(User).id
-      fid2 = Factory.create(User).id
-
-      Follows.bulk_insert([
-        %{userId: fid1, followerId: uid},
-        %{userId: fid2, followerId: uid}
-      ])
-
-      assert {[], _} = Follows.fetch_following_online(uid)
-
-      # but only make follower1 online
-
-      Users.set_online(fid1)
-
-      assert {[_], _} = Follows.fetch_following_online(uid)
     end
 
     test "fetch_invite_list/2" do

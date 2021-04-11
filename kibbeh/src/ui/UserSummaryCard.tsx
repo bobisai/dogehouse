@@ -3,21 +3,22 @@ import React from "react";
 import { SingleUser } from "./UserAvatar";
 import { UserBadge } from "./UserBadge";
 import { kFormatter } from "../lib/kFormatter";
+import { ApiPreloadLink } from "../shared-components/ApiPreloadLink";
 
 type badge = {
-  content: any;
+  content: React.ReactNode;
   variant: "primary" | "secondary";
-  type: "text" | "svg";
 };
 
 export interface UserSummaryCardProps {
-  userId: string;
+  onClick: () => void;
+  id: string;
   displayName: string;
   username: string;
-  followers: number;
-  following: number;
+  numFollowers: number;
+  numFollowing: number;
   isOnline: boolean;
-  avatar: string;
+  avatarUrl: string;
   badges: badge[];
   bio?: string;
   website?: string;
@@ -34,16 +35,16 @@ interface WebsiteProps {
 export const Badges: React.FC<BadgesProps> = ({ badges }) => {
   return (
     <div className="mt-2">
-      {badges.map(({ content, variant, type }, i) => (
+      {badges.map(({ content, variant }, i) => (
         <span className="mr-1" key={i}>
-          <UserBadge variant={variant}>
-            {type === "svg" ? content() : content}
-          </UserBadge>
+          <UserBadge variant={variant}>{content}</UserBadge>
         </span>
       ))}
     </div>
   );
 };
+
+const regex = /(^\w+:|^)\/\//;
 
 export const Website: React.FC<WebsiteProps> = ({ website }) => {
   return (
@@ -53,53 +54,60 @@ export const Website: React.FC<WebsiteProps> = ({ website }) => {
       target="_blank"
       rel="noreferrer"
     >
-      {website.replace(/(^\w+:|^)\/\//, "")}
+      {website.replace(regex, "")}
     </a>
   );
 };
 
 export const UserSummaryCard: React.FC<UserSummaryCardProps> = ({
-  userId,
+  onClick,
   displayName,
   username,
   badges,
-  followers,
-  following,
+  numFollowers,
+  numFollowing,
   bio,
   website,
   isOnline,
-  avatar,
+  avatarUrl,
 }) => {
   return (
-    <div
-      className="flex-col bg-primary-800 p-4 w-full"
-      style={{ borderRadius: "8px" }}
-    >
-      <div>
-        <SingleUser size="default" isOnline={isOnline} src={avatar} />
-        <div className="flex-col ml-3">
-          <span className="text-sm text-primary-100 font-bold">
-            {displayName}
-          </span>
-          <span className="text-sm text-primary-300">{username}</span>
-          <Badges badges={badges} />
+    <div className="flex-col rounded-8 bg-primary-800 p-4 w-full">
+      <button onClick={onClick}>
+        <div>
+          <SingleUser size="default" isOnline={isOnline} src={avatarUrl} />
         </div>
-      </div>
+        <div>
+          <div className="flex-col ml-3">
+            <span className="text-sm text-primary-100 font-bold break-all text-left">
+              {displayName}
+            </span>
+            <span className="text-sm text-primary-300 text-left break-all">
+              @{username}
+            </span>
+            <Badges badges={badges} />
+          </div>
+        </div>
+      </button>
       <div className="mt-3">
         <div>
-          <span className="text-primary-100 font-bold">
-            {kFormatter(followers)}
-          </span>{" "}
-          <span className="text-primary-300 ml-1">followers</span>
+          <ApiPreloadLink route="followers" data={{ username }}>
+            <span className="text-primary-100 font-bold">
+              {kFormatter(numFollowers)}
+            </span>{" "}
+            <span className="text-primary-300 ml-1">followers</span>
+          </ApiPreloadLink>
         </div>
         <div className="ml-4">
-          <span className="text-primary-100 font-bold">
-            {kFormatter(following)}
-          </span>
-          <span className="text-primary-300 ml-1"> following</span>
+          <ApiPreloadLink route="following" data={{ username }}>
+            <span className="text-primary-100 font-bold">
+              {kFormatter(numFollowing)}
+            </span>
+            <span className="text-primary-300 ml-1"> following</span>
+          </ApiPreloadLink>
         </div>
       </div>
-      <div className="text-primary-300 mt-3">{bio}</div>
+      <div className="text-primary-300 mt-3 break-words text-left">{bio}</div>
       {website && <Website website={website} />}
     </div>
   );
